@@ -1,0 +1,46 @@
+{
+  "port":             5000,
+  "home":             "/usr/local/18f/pages",
+  "git":              "/usr/bin/git",
+  "bundler":          "/usr/local/18f/rbenv/shims/bundle",
+  "jekyll":           "/usr/local/18f/rbenv/shims/jekyll",
+  "rsync":            "/usr/bin/rsync",
+  "rsyncOpts":        [
+    "-vaxp",
+    "--delete",
+    "--ignore-errors",
+    "--exclude=.[A-Za-z0-9]*"
+  ],
+  "payloadLimit":     1048576,
+  "githubOrg":        "18F",
+  "pagesConfig":      "_config_18f_pages.yml",
+  "pagesYaml":        ".18f-pages.yml",
+  "assetRoot":        "/guides-template",
+  "fileLockWaitTime": 30000,
+  "fileLockPollTime": 1000,
+  "secretKeyFile":    "/usr/local/18f/pages/conf/.18f-pages.secret",
+  "builders": [
+    {
+      "branch":           "18f-pages",
+      "repositoryDir":    "repos/pages.18f.gov",
+      "generatedSiteDir": "sites/pages.18f.gov",
+      "internalSiteDir":  "sites/pages-internal.18f.gov"
+    },
+    {
+      "branch":           "18f-pages-staging",
+      "repositoryDir":    "repos/pages-staging.18f.gov",
+      "generatedSiteDir": "sites/pages-staging.18f.gov",
+      "internalSiteDir":  "sites/pages-internal.18f.gov"
+    },
+    {
+      "branch":           "18f-pages-internal",
+      "repositoryDir":    "repos/pages-internal.18f.gov",
+      "generatedSiteDir": "sites/pages-internal.18f.gov"
+    },
+    {
+      "branchInUrlPattern": "v[0-9]+.[0-9]+.[0-9]*[a-z]*",
+      "repositoryDir":      "repos/pages-releases.18f.gov",
+      "generatedSiteDir":   "sites/pages-releases.18f.gov"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+FROM dev-standard
+
+RUN bash -l -c 'go get github.com/18F/authdelegate && \
+    strip $GOPATH/bin/authdelegate'
+
+RUN groupadd -r authdelegate && useradd -r -m -g authdelegate authdelegate && \
+    mkdir $APP_SYS_ROOT/authdelegate && \
+    chown authdelegate:authdelegate $APP_SYS_ROOT/authdelegate
+USER authdelegate
+WORKDIR $APP_SYS_ROOT/authdelegate
+COPY ["authdelegate-config.json", "authdelegate-config.json"]
+EXPOSE 9000
+CMD ["/bin/bash", "-l", "-c", \
+     "$GOPATH/bin/authdelegate authdelegate-config.json"]

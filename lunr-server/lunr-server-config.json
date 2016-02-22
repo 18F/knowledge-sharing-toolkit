@@ -1,0 +1,17 @@
+{
+  "corpora": [
+    { "name": "The Hub",
+      "baseurl": "https://hub.18f.gov",
+      "indexPath": "/usr/local/18f/hub/repo/_site/search-index.json"
+    },
+    { "name": "Guides Template",
+      "baseurl": "https://pages.18f.gov",
+      "indexPath": "/usr/local/18f/pages/sites/pages.18f.gov/guides-template/search-index.json"
+    },
+    { "name": "Unit testing in Node.js",
+      "baseurl": "https://pages.18f.gov",
+      "indexPath": "/usr/local/18f/pages/sites/pages.18f.gov/unit-testing-node/search-index.json"
+    }
+  ],
+  "port": 7777
+}
