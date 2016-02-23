@@ -1,5 +1,8 @@
 FROM dev-base
 
+ENV _GO_VERSION go1.6
+RUN /bin/bash -l -c "gvm install $_GO_VERSION && gvm use $_GO_VERSION --default"
+
 ENV _RUBY_VERSION 2.3.0
 RUN /bin/bash -l -c \
     "rbenv install $_RUBY_VERSION && rbenv global $_RUBY_VERSION && \
@@ -11,11 +14,6 @@ RUN /bin/bash -l -c \
     "pyenv install $_PYTHON_VERSION && pyenv install $_PYTHON3_VERSION && \
     pyenv global $_PYTHON_VERSION"
 
-ENV _NODE_VERSION 5.6.0
+ENV _NODE_VERSION 5.7.0
 RUN /bin/bash -l -c \
     "nvm install $_NODE_VERSION && nvm alias default $_NODE_VERSION"
-
-ENV _GO_VERSION go1.6
-RUN /bin/bash -l -c \
-    "gvm install go1.4.3 && gvm use go1.4.3 && \
-    gvm install $_GO_VERSION && gvm use $_GO_VERSION --default"
