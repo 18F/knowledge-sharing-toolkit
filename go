@@ -38,7 +38,7 @@ IMAGES = %w(
   oauth2_proxy
   hmacproxy
   authdelegate
-  18f-pages
+  pages
   lunr-server
   team-api
 )
@@ -62,6 +62,12 @@ def _remove_container(image_name)
     "docker rm #{image_name}; fi"
 end
 
+def _config_dir_volume_binding(image_name)
+  local_config_dir = File.join(LOCAL_ROOT_DIR, image_name, 'config')
+  image_config_dir = "#{APP_SYS_ROOT}/#{image_name}"
+  "#{local_config_dir}:#{image_config_dir}"
+end
+
 def _run_container(image_name, options, command: '')
   puts "Running: #{image_name}"
 
@@ -70,10 +76,8 @@ def _run_container(image_name, options, command: '')
 
   # Mount the corresponding config directories as volumes. Name the container
   # the same as the image.
-  local_config_dir = File.join(LOCAL_ROOT_DIR, image_name, 'config')
-  image_config_dir = "#{APP_SYS_ROOT}/#{image_name}"
   exec_cmd "docker run #{options} --name #{image_name} " \
-    "-v #{local_config_dir}:#{image_config_dir} " \
+    "-v #{_config_dir_volume_binding(image_name)} " \
     "#{image_name} #{command}"
 end
 
