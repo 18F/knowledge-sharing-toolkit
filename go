@@ -40,8 +40,13 @@ IMAGES = %w(
   hmacproxy
   authdelegate
   pages
+  pages-sites
   lunr-server
   team-api
+)
+
+DATA_CONTAINERS = %w(
+  pages-sites
 )
 
 def message_marker(message)
@@ -55,12 +60,18 @@ def build_image(image)
 end
 
 def_command :build_images, 'Build Docker images' do |args|
-  (args.empty? ? IMAGES : args).each { |image| build_image(image) }
+  images = args.empty? ? IMAGES : args
+  images.each { |image| build_image(image) }
 end
 
 def _remove_container(image_name)
   exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
     "docker rm #{image_name}; fi"
+end
+
+def _run_data_container(data_image_name)
+  exec_cmd "docker run --name #{data_image_name} #{data_image_name} " \
+    "echo Created data container \\\"#{data_image_name}\\\""
 end
 
 def _config_dir_volume_binding(image_name)
@@ -69,7 +80,11 @@ def _config_dir_volume_binding(image_name)
   "#{local_config_dir}:#{image_config_dir}"
 end
 
-def _run_container(image_name, options, command: '')
+def _volumes_from(data_containers)
+  data_containers.map { |container| "--volumes-from #{container}" }.join(' ')
+end
+
+def _run_container(image_name, options, command: '', data_containers: [])
   puts "Running: #{image_name}"
 
   # Remove any existing containers matching the image name.
@@ -79,12 +94,18 @@ def _run_container(image_name, options, command: '')
   # the same as the image.
   exec_cmd "docker run #{options} --name #{image_name} " \
     "-v #{_config_dir_volume_binding(image_name)} " \
-    "#{image_name} #{command}"
+    "#{_volumes_from(data_containers)} #{image_name} #{command}"
 end
 
 def _stop_container(image_name)
   exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
     "docker stop #{image_name}; fi"
+end
+
+def_command :run_data_containers, 'Run Docker data containers' do |args|
+  (args.empty? ? DATA_CONTAINERS : args).each do |image|
+    _run_data_container(image)
+  end
 end
 
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
@@ -97,6 +118,16 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
   else
     puts 'run_container accepts only a single container name as an argument'
   end
+end
+
+def_command :run_pages, 'Run 18F Pages' do
+  _run_container('pages', '-it', command: '/bin/bash -l',
+    data_containers: ['pages-sites:rw'])
+end
+
+def_command :run_nginx, 'Run Nginx' do
+  _run_container('nginx-18f', '-it', command: '/bin/bash -l',
+    data_containers: ['pages-sites:ro'])
 end
 
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
