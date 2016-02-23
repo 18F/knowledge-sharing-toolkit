@@ -12,5 +12,8 @@ branches:
   only:
     - master
 
+install:
+  - echo "no install steps needed"
+
 script:
   - ./go build_images
