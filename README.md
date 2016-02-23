@@ -10,6 +10,10 @@ that enable a team to collect and radiate institutional knowledge and
 information. This project contains Docker components for these services, to
 enable rapid deployment of the entire suite.
 
+## Dependencies
+- Ruby >= 2.3.0
+- Docker
+
 ## Installation
 
 ## Contributing
