@@ -1,0 +1,16 @@
+sudo: required
+
+language: ruby
+
+rvm:
+  - 2.3.0
+
+services:
+  - docker
+
+branches:
+  only:
+    - master
+
+script:
+  - ./go build_images
