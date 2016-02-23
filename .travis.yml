@@ -1,0 +1,19 @@
+sudo: required
+
+language: ruby
+
+rvm:
+  - 2.3.0
+
+services:
+  - docker
+
+branches:
+  only:
+    - master
+
+install:
+  - echo "no install steps needed"
+
+script:
+  - ./go build_images
