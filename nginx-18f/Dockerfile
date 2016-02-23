@@ -13,7 +13,7 @@ RUN mkdir -p $APP_SYS_ROOT/src && cd $APP_SYS_ROOT/src \
 
 RUN cd $APP_SYS_ROOT/src/nginx-$NGINX_VERSION \
     && ./configure --prefix=/usr/local/18f/nginx \
-      --conf-path=/usr/local/18f/nginx/conf/nginx.conf \
+      --conf-path=/usr/local/18f/nginx/config/nginx.conf \
       --with-cc=/usr/bin/gcc \
       --with-cc-opt='-I/usr/local/18f/include' \
       --with-http_addition_module \
@@ -40,11 +40,8 @@ RUN cd $APP_SYS_ROOT/src/nginx-$NGINX_VERSION \
    && make install && rm -rf $APP_SYS_ROOT/src \
    && strip /usr/local/18f/nginx/sbin/nginx
 
-WORKDIR $APP_SYS_ROOT/nginx
 RUN groupadd -r nginx && useradd -r -g nginx nginx
-#RUN openssl dhparam -out /etc/nginx/ssl/dhparam.pem 2048
-COPY ["conf", "conf"]
 
-VOLUME $NGINX_ROOT/logs
+WORKDIR $APP_SYS_ROOT/nginx
 EXPOSE 80 443
 CMD ["sbin/nginx", "-g", "daemon off;" ]

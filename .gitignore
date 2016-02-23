@@ -1,8 +1,8 @@
 .DS_store
 .*.swp
 .github_token
-nginx-18f/conf/vhosts/pages-passwords.txt
-nginx-18f/conf/ssl/dhparam*
-nginx-18f/conf/ssl/keys/*
+nginx-18f/config/vhosts/pages-passwords.txt
+nginx-18f/config/ssl/dhparam*
+nginx-18f/config/ssl/keys/*
 pages/config/pages.secret
 */config/env-secret.sh
