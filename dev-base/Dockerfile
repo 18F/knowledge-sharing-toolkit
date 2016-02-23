@@ -86,4 +86,5 @@ ENV _GVM_NO_UPDATE_PROFILE true
 RUN curl -L -O https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer && \
     bash ./gvm-installer $_GVM_VERSION $APP_SYS_ROOT && \
     echo . $_GVM_ROOT/scripts/gvm >> $_GVM_PROFILE && \
-    chmod +x $_GVM_PROFILE
+    chmod +x $_GVM_PROFILE && \
+    /bin/bash -l -c "gvm install go1.4.3 && gvm use go1.4.3 --default"
