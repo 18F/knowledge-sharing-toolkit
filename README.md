@@ -10,7 +10,38 @@ that enable a team to collect and radiate institutional knowledge and
 information. This project contains Docker components for these services, to
 enable rapid deployment of the entire suite.
 
+## Dependencies
+- Ruby >= 2.3.0
+- Docker
+
 ## Installation
+
+To install all the images at once: `./go build_images`
+
+To install specific a specific image or specific [images](#images)
+
+```
+
+$ ./go build_images <image_name_0> ... <image_name_n>
+
+# Example building oauth2_proxy, hmacproxy, and team-api
+
+$ ./go build_images oauth2_proxy hmacproxy team-api
+
+```
+
+## Images
+
+- dev-base: An image that contains all of the tools needed for the images.
+- dev-standard: An image that pins the versions of tools to the latest. Also, the basis for rest of the images in this list.
+- nginx-18f
+- [oauth2_proxy](https://github.com/bitly/oauth2_proxy)
+- [hmacproxy](https://github.com/18F/hmacproxy)
+- [authdelegate](https://github.com/18F/authdelegate)
+- [18f-pages](https://github.com/18F/pages)
+- [lunr-server](https://github.com/18F/lunr-server)
+- [team-api](https://github.com/18F/team-api-server)
+
 
 ## Contributing
 
