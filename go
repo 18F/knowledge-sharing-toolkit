@@ -29,6 +29,7 @@ check_ruby_version '2.3.0'
 
 command_group :build, 'Image building commands'
 
+LOCAL_ROOT_DIR = File.absolute_path(File.dirname(__FILE__))
 APP_SYS_ROOT = '/usr/local/18f'
 
 IMAGES = %w(
@@ -81,8 +82,13 @@ def _run_container(image_name, options, command: '')
     "#{image_name} #{command}"
 end
 
+def _stop_container(image_name)
+  exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
+    "docker stop #{image_name}; fi"
+end
+
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
-  args.each { |image| _run_container(image, '-d') }
+  (args.empty? ? IMAGES : args).each { |image| _run_container(image, '-d') }
 end
 
 def_command :run_container, 'Run a shell within a Docker container' do |args|
@@ -91,6 +97,10 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
   else
     puts 'run_container accepts only a single container name as an argument'
   end
+end
+
+def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
+  (args.empty? ? IMAGES : args).each { |image| _stop_container(image) }
 end
 
 def_command :rm_containers, 'Remove stopped containers' do
