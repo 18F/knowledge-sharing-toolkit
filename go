@@ -49,35 +49,32 @@ DATA_CONTAINERS = %w(
   pages-sites
 )
 
-def message_marker(message)
-  marker = '-' * message.size
-  "#{marker}\n#{message}\n#{marker}"
-end
 
-def build_image(image)
-  puts message_marker("Building #{image}")
-  exec_cmd "docker build -t #{image} -f ./#{image}/Dockerfile ./#{image}"
-end
+DAEMON_TO_DATA_CONTAINERS = {
+  'nginx-18f' => ['pages-sites:ro'],
+  'pages' => ['pages-sites'],
+}
 
 def_command :build_images, 'Build Docker images' do |args|
-  images = args.empty? ? IMAGES : args
-  images.each { |image| build_image(image) }
+  (args.empty? ? IMAGES : args).each do |image|
+    message = "Building #{image}"
+    marker = '-' * message.size
+    puts "#{marker}\n#{message}\n#{marker}"
+    exec_cmd "docker build -t #{image} -f ./#{image}/Dockerfile ./#{image}"
+  end
 end
 
-def _remove_container(image_name)
-  exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
-    "docker rm #{image_name}; fi"
-end
-
-def _run_data_container(data_image_name)
-  exec_cmd "docker run --name #{data_image_name} #{data_image_name} " \
-    "echo Created data container \\\"#{data_image_name}\\\""
+def_command :create_data_containers, 'Create Docker data containers' do |args|
+  (args.empty? ? DATA_CONTAINERS : args).each do |container_name|
+    exec_cmd "docker run --name #{container_name} #{container_name} " \
+      "echo Created data container \\\"#{container_name}\\\""
+  end
 end
 
 def _config_dir_volume_binding(image_name)
   local_config_dir = File.join(LOCAL_ROOT_DIR, image_name, 'config')
   image_config_dir = "#{APP_SYS_ROOT}/#{image_name}"
-  "#{local_config_dir}:#{image_config_dir}"
+  "-v #{local_config_dir}:#{image_config_dir}:ro"
 end
 
 def _volumes_from(data_containers)
@@ -88,50 +85,37 @@ def _run_container(image_name, options, command: '', data_containers: [])
   puts "Running: #{image_name}"
 
   # Remove any existing containers matching the image name.
-  _remove_container(image_name)
+  exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
+    "docker rm #{image_name}; fi"
 
   # Mount the corresponding config directories as volumes. Name the container
   # the same as the image.
   exec_cmd "docker run #{options} --name #{image_name} " \
-    "-v #{_config_dir_volume_binding(image_name)} " \
+    "#{_config_dir_volume_binding(image_name)} " \
     "#{_volumes_from(data_containers)} #{image_name} #{command}"
 end
 
-def _stop_container(image_name)
-  exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
-    "docker stop #{image_name}; fi"
-end
-
-def_command :run_data_containers, 'Run Docker data containers' do |args|
-  (args.empty? ? DATA_CONTAINERS : args).each do |image|
-    _run_data_container(image)
-  end
-end
-
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
-  (args.empty? ? IMAGES : args).each { |image| _run_container(image, '-d') }
+  (args.empty? ? IMAGES : args).each do |image|
+    _run_container(image, '-d',
+      data_containers: DAEMON_TO_DATA_CONTAINERS[image] || [])
+  end
 end
 
 def_command :run_container, 'Run a shell within a Docker container' do |args|
   if args.size == 1
-    _run_container(args.first, '-it', command: '/bin/bash -l')
+    _run_container(args.first, '-it', command: '/bin/bash -l',
+      data_containers: DAEMON_TO_DATA_CONTAINERS[args.first] || [])
   else
     puts 'run_container accepts only a single container name as an argument'
   end
 end
 
-def_command :run_pages, 'Run 18F Pages' do
-  _run_container('pages', '-it', command: '/bin/bash -l',
-    data_containers: ['pages-sites:rw'])
-end
-
-def_command :run_nginx, 'Run Nginx' do
-  _run_container('nginx-18f', '-it', command: '/bin/bash -l',
-    data_containers: ['pages-sites:ro'])
-end
-
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
-  (args.empty? ? IMAGES : args).each { |image| _stop_container(image) }
+  (args.empty? ? IMAGES : args).each do |image|
+    exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
+      "docker stop #{image_name}; fi"
+  end
 end
 
 def_command :rm_containers, 'Remove stopped containers' do
