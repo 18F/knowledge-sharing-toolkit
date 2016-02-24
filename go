@@ -40,19 +40,17 @@ IMAGES = %w(
   hmacproxy
   authdelegate
   pages
-  pages-sites
   lunr-server
   team-api
 )
 
-DATA_CONTAINERS = %w(
-  pages-sites
-)
-
+DATA_CONTAINERS = {
+  'pages-data' => 'pages'
+}
 
 DAEMON_TO_DATA_CONTAINERS = {
-  'nginx-18f' => ['pages-sites:ro'],
-  'pages' => ['pages-sites'],
+  'nginx-18f' => ['pages-data:ro'],
+  'pages' => ['pages-data:rw'],
 }
 
 def_command :build_images, 'Build Docker images' do |args|
@@ -65,9 +63,11 @@ def_command :build_images, 'Build Docker images' do |args|
 end
 
 def_command :create_data_containers, 'Create Docker data containers' do |args|
-  (args.empty? ? DATA_CONTAINERS : args).each do |container_name|
-    exec_cmd "docker run --name #{container_name} #{container_name} " \
-      "echo Created data container \\\"#{container_name}\\\""
+  (args.empty? ? DATA_CONTAINERS.keys : args).each do |container_name|
+    base_image = DATA_CONTAINERS[container_name]
+    exec_cmd "docker run --name #{container_name} #{base_image} " \
+      "echo Created data container \\\"#{container_name}\\\" " \
+      "from \\\"#{base_image}\\\""
   end
 end
 

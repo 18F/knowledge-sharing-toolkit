@@ -6,9 +6,9 @@ RUN bash -l -c "npm install -g 18f-pages-server@$_PAGES_VERSION && \
     gem install jekyll -v $_JEKYLL_VERSION"
 
 RUN groupadd -r pages && useradd -r -m -g pages pages && \
-    mkdir -p $APP_SYS_ROOT/pages/repos && \
-    chown pages:pages $APP_SYS_ROOT/pages/repos
-VOLUME $APP_SYS_ROOT/pages/repos
+    mkdir -p $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites && \
+    chown pages:pages $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites
+VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites
 USER pages
 WORKDIR $APP_SYS_ROOT/pages
 
