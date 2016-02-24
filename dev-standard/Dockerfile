@@ -17,3 +17,5 @@ RUN /bin/bash -l -c \
 ENV _NODE_VERSION 5.7.0
 RUN /bin/bash -l -c \
     "nvm install $_NODE_VERSION && nvm alias default $_NODE_VERSION"
+
+RUN /bin/bash -l -c "pip install awscli"
