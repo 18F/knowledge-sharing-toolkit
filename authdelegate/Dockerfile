@@ -8,4 +8,4 @@ USER authdelegate
 WORKDIR $APP_SYS_ROOT/authdelegate
 
 EXPOSE 9000
-CMD ["/bin/bash", "-l", "-c", "authdelegate authdelegate-config.json"]
+CMD ["/bin/bash", "-l", "-c", "authdelegate config/authdelegate-config.json"]

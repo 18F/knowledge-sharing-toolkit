@@ -3,13 +3,15 @@ FROM dev-standard
 ENV _TEAM_API_SERVER_VERSION 0.1.1
 RUN bash -l -c "npm install -g team-api-server@$_TEAM_API_SERVER_VERSION"
 
-RUN groupadd -r team-api && \
-    useradd -r -m -g team-api team-api && \
-    mkdir $APP_SYS_ROOT/team-api && \
-    chown team-api:team-api $APP_SYS_ROOT/team-api
-USER team-api-server
+RUN groupadd -r team-api && useradd -r -m -g team-api team-api && \
+    mkdir -p $APP_SYS_ROOT/team-api/team-api.18f.gov && \
+    chown team-api:team-api $APP_SYS_ROOT/team-api/team-api.18f.gov
+VOLUME ["$APP_SYS_ROOT/team-api/team-api.18f.gov"]
+USER team-api
 WORKDIR $APP_SYS_ROOT/team-api
-VOLUME $APP_SYS_ROOT/team-api
-COPY ["team-api-config.json", "team-api-config.json"]
+
 EXPOSE 6000 6001
-CMD ["/bin/bash", "-l", "-c", "team-api-server team-api-config.json"]
+CMD ["/bin/bash", "-l", "-c", \
+     "eval $(ssh-agent -s) && \
+      ssh-add config/id_rsa_18f_bot && \
+      /bin/bash config/prep-repo.sh && team-api-server config/team-api-config.json"]

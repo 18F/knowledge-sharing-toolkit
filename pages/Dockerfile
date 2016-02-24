@@ -14,6 +14,6 @@ WORKDIR $APP_SYS_ROOT/pages
 
 EXPOSE 5000
 CMD ["/bin/bash", "-l", "-c", \
-     "source env-secret.sh && \
+     "source config/env-secret.sh && \
       aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites && \
-      18f-pages pages-config.json"]
+      18f-pages config/pages-config.json"]

@@ -45,18 +45,22 @@ IMAGES = %w(
 )
 
 DATA_CONTAINERS = {
-  'pages-data' => 'pages'
+  'pages-data' => 'pages',
+  'team-api-data' => 'team-api',
 }
 
 DAEMON_TO_DATA_CONTAINERS = {
   'lunr-server' => ['pages-data:ro'],
-  'nginx-18f' => ['pages-data:ro'],
+  'nginx-18f' => [
+    'pages-data:ro',
+    'team-api-data:ro',
+  ],
   'pages' => ['pages-data:rw'],
   'oauth2_proxy' => [],
   'hmacproxy' => [],
   'authdelegate' => [],
   'lunr-server' => [],
-  'team-api' => [],
+  'team-api' => ['team-api-data:rw'],
 }
 
 def _check_names(names, collection, type_label)
@@ -105,7 +109,7 @@ end
 
 def _config_dir_volume_binding(image_name)
   local_config_dir = File.join(LOCAL_ROOT_DIR, image_name, 'config')
-  image_config_dir = "#{APP_SYS_ROOT}/#{image_name}"
+  image_config_dir = "#{APP_SYS_ROOT}/#{image_name}/config"
   "-v #{local_config_dir}:#{image_config_dir}:ro"
 end
 

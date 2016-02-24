@@ -8,4 +8,4 @@ USER lunr-server
 WORKDIR $APP_SYS_ROOT/lunr-server
 
 EXPOSE 7777
-CMD ["/bin/bash", "-l", "-c", "lunr-server lunr-server-config.json"]
+CMD ["/bin/bash", "-l", "-c", "lunr-server config/lunr-server-config.json"]
