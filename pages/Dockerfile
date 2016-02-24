@@ -13,4 +13,7 @@ USER pages
 WORKDIR $APP_SYS_ROOT/pages
 
 EXPOSE 5000
-CMD ["/bin/bash", "-l", "-c", "18f-pages pages-config.json"]
+CMD ["/bin/bash", "-l", "-c", \
+     "source env-secret.sh && \
+      aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites && \
+      18f-pages pages-config.json"]
