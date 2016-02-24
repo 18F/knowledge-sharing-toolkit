@@ -123,4 +123,9 @@ def_command :rm_containers, 'Remove stopped containers' do
     'grep -v NAMES)'
 end
 
+def_command :rm_images, 'Remove unused images' do
+  exec_cmd 'docker images | grep \'^<none>\' | awk \'{ print $3 }\' | ' \
+    'xargs docker rmi'
+end
+
 execute_command ARGV
