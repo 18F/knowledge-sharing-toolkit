@@ -51,10 +51,40 @@ DATA_CONTAINERS = {
 DAEMON_TO_DATA_CONTAINERS = {
   'nginx-18f' => ['pages-data:ro'],
   'pages' => ['pages-data:rw'],
+  'oauth2_proxy' => [],
+  'hmacproxy' => [],
+  'authdelegate' => [],
+  'lunr-server' => [],
+  'team-api' => [],
 }
 
+def _check_names(names, collection, type_label)
+  names.each do |name|
+    next if collection.include?(name)
+    puts "\"#{name}\" does not match any known #{type_label}; " \
+      "valid #{type_label}s are:\n  #{collection.join("\n  ")}"
+    exit 1
+  end
+  names
+end
+
+def _images(args)
+  args.empty? ? IMAGES : _check_names(args, IMAGES, 'image')
+end
+
+def _data_containers(args)
+  known_containers = DATA_CONTAINERS.keys
+  return known_containers if args.empty?
+  _check_names(args, known_containers, 'data container')
+end
+
+def _daemons(args)
+  daemons = DAEMON_TO_DATA_CONTAINERS.keys
+  args.empty? ? daemons : _check_names(args, daemons, 'daemon')
+end
+
 def_command :build_images, 'Build Docker images' do |args|
-  (args.empty? ? IMAGES : args).each do |image|
+  _images(args).each do |image|
     message = "Building #{image}"
     marker = '-' * message.size
     puts "#{marker}\n#{message}\n#{marker}"
@@ -63,7 +93,7 @@ def_command :build_images, 'Build Docker images' do |args|
 end
 
 def_command :create_data_containers, 'Create Docker data containers' do |args|
-  (args.empty? ? DATA_CONTAINERS.keys : args).each do |container_name|
+  _data_containers(args).each do |container_name|
     base_image = DATA_CONTAINERS[container_name]
     exec_cmd "docker run --name #{container_name} #{base_image} " \
       "echo Created data container \\\"#{container_name}\\\" " \
@@ -96,23 +126,23 @@ def _run_container(image_name, options, command: '', data_containers: [])
 end
 
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
-  (args.empty? ? IMAGES : args).each do |image|
+  _daemons(args).each do |image|
     _run_container(image, '-d',
-      data_containers: DAEMON_TO_DATA_CONTAINERS[image] || [])
+      data_containers: DAEMON_TO_DATA_CONTAINERS[image])
   end
 end
 
 def_command :run_container, 'Run a shell within a Docker container' do |args|
-  if args.size == 1
+  if _images(args).size == 1
     _run_container(args.first, '-it', command: '/bin/bash -l',
-      data_containers: DAEMON_TO_DATA_CONTAINERS[args.first] || [])
+      data_containers: DAEMON_TO_DATA_CONTAINERS[args.first])
   else
     puts 'run_container accepts only a single container name as an argument'
   end
 end
 
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
-  (args.empty? ? IMAGES : args).each do |image|
+  _daemons(args).each do |image|
     exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
       "docker stop #{image_name}; fi"
   end
