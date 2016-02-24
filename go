@@ -95,9 +95,10 @@ end
 def_command :create_data_containers, 'Create Docker data containers' do |args|
   _data_containers(args).each do |container_name|
     base_image = DATA_CONTAINERS[container_name]
-    exec_cmd "docker run --name #{container_name} #{base_image} " \
+    exec_cmd "if ! $(docker ps -a | grep -q ' #{container_name}$'); then " \
+      "docker run --name #{container_name} #{base_image} " \
       "echo Created data container \\\"#{container_name}\\\" " \
-      "from \\\"#{base_image}\\\""
+      "from \\\"#{base_image}\\\"; fi"
   end
 end
 
@@ -148,9 +149,11 @@ def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
   end
 end
 
-def_command :rm_containers, 'Remove stopped containers' do
-  exec_cmd 'docker rm $(docker ps -a | sed -e \'s/.* \([^ ]*$\)/\1/\' | ' \
-    'grep -v NAMES)'
+def_command :rm_containers, 'Remove stopped containers' do |args|
+  containers_to_stop_regex = "(#{_images(args).join('|')})"
+  exec_cmd 'containers=$(docker ps -a | sed -e \'s/.* \([^ ]*$\)/\1/\' | ' \
+    "egrep -v '(NAMES|-data)$' | egrep -- '#{containers_to_stop_regex}'); " \
+    'if [ ! -z "$containers" ]; then docker rm $containers; fi'
 end
 
 def_command :rm_images, 'Remove unused images' do
