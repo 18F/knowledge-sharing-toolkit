@@ -49,6 +49,7 @@ DATA_CONTAINERS = {
 }
 
 DAEMON_TO_DATA_CONTAINERS = {
+  'lunr-server' => ['pages-data:ro'],
   'nginx-18f' => ['pages-data:ro'],
   'pages' => ['pages-data:rw'],
   'oauth2_proxy' => [],
