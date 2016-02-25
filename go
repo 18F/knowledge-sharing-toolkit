@@ -35,7 +35,7 @@ APP_SYS_ROOT = '/usr/local/18f'
 IMAGES = %w(
   dev-base
   dev-standard
-  nginx-18f
+  nginx
   oauth2_proxy
   hmacproxy
   authdelegate
@@ -49,17 +49,32 @@ DATA_CONTAINERS = {
   'team-api-data' => 'team-api',
 }
 
-DAEMON_TO_DATA_CONTAINERS = {
-  'lunr-server' => ['pages-data:ro'],
-  'nginx-18f' => [
-    'pages-data:ro',
-    'team-api-data:ro',
-  ],
-  'pages' => ['pages-data:rw'],
-  'oauth2_proxy' => [],
-  'hmacproxy' => [],
-  'authdelegate' => [],
-  'team-api' => ['team-api-data:rw'],
+DAEMONS = {
+  'lunr-server' => {
+    data_containers: ['pages-data:ro'],
+  },
+  'nginx' => {
+    flags: '-p 80:80 -p 443:443',
+    data_containers: [
+      'pages-data:ro',
+      'team-api-data:ro',
+    ],
+  },
+  'pages' => {
+    data_containers: ['pages-data:rw']
+  },
+  'oauth2_proxy' => {
+    data_containers: [],
+  },
+  'hmacproxy' => {
+    data_containers: [],
+  },
+  'authdelegate' => {
+    data_containers: [],
+  },
+  'team-api' => {
+    data_containers: ['team-api-data:rw'],
+  },
 }
 
 NEEDS_SSH = %w(team-api)
@@ -85,7 +100,7 @@ def _data_containers(args)
 end
 
 def _daemons(args)
-  daemons = DAEMON_TO_DATA_CONTAINERS.keys
+  daemons = DAEMONS.keys
   args.empty? ? daemons : _check_names(args, daemons, 'daemon')
 end
 
@@ -138,9 +153,10 @@ def _run_container(image_name, options, command: '', data_containers: [])
 end
 
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
-  _daemons(args).each do |image|
-    _run_container(image, '-d',
-      data_containers: DAEMON_TO_DATA_CONTAINERS[image])
+  _daemons(args).each do |daemon_name|
+    daemon = DAEMONS[daemon_name]
+    _run_container(daemon_name, "-d #{daemon[:flags]}",
+      data_containers: daemon[:data_containers])
   end
 end
 
@@ -152,7 +168,7 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
   _images([image])
   command = args.empty? ? '/bin/bash' : args.join(' ')
   _run_container(image, '-it', command: command,
-    data_containers: DAEMON_TO_DATA_CONTAINERS[args.first])
+    data_containers: DAEMONS[image][:data_containers])
 end
 
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
