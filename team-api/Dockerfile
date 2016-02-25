@@ -11,7 +11,6 @@ USER team-api
 WORKDIR $APP_SYS_ROOT/team-api
 
 EXPOSE 6000 6001
-CMD ["/bin/bash", "-l", "-c", \
-     "eval $(ssh-agent -s) && \
-      ssh-add config/id_rsa_18f_bot && \
-      /bin/bash config/prep-repo.sh && team-api-server config/team-api-config.json"]
+COPY ["entrypoint.sh", "entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["run-server"]

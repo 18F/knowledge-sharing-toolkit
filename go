@@ -59,9 +59,10 @@ DAEMON_TO_DATA_CONTAINERS = {
   'oauth2_proxy' => [],
   'hmacproxy' => [],
   'authdelegate' => [],
-  'lunr-server' => [],
   'team-api' => ['team-api-data:rw'],
 }
+
+NEEDS_SSH = %w(team-api)
 
 def _check_names(names, collection, type_label)
   names.each do |name|
@@ -113,6 +114,10 @@ def _config_dir_volume_binding(image_name)
   "-v #{local_config_dir}:#{image_config_dir}:ro"
 end
 
+def _ssh_config_dir_volume_binding(image_name)
+  NEEDS_SSH.include?(image_name) ? _config_dir_volume_binding('ssh') : ''
+end
+
 def _volumes_from(data_containers)
   data_containers.map { |container| "--volumes-from #{container}" }.join(' ')
 end
@@ -128,7 +133,8 @@ def _run_container(image_name, options, command: '', data_containers: [])
   # the same as the image.
   exec_cmd "docker run #{options} --name #{image_name} " \
     "#{_config_dir_volume_binding(image_name)} " \
-    "#{_volumes_from(data_containers)} #{image_name} #{command}"
+    "#{_ssh_config_dir_volume_binding(image_name)} " \
+    "#{_volumes_from(DATA_CONTAINERS.keys)} #{image_name} #{command}"
 end
 
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
@@ -139,12 +145,14 @@ def_command :run_daemons, 'Run Docker containers as daemons' do |args|
 end
 
 def_command :run_container, 'Run a shell within a Docker container' do |args|
-  if _images(args).size == 1
-    _run_container(args.first, '-it', command: '/bin/bash -l',
-      data_containers: DAEMON_TO_DATA_CONTAINERS[args.first])
-  else
-    puts 'run_container accepts only a single container name as an argument'
+  if args.empty?
+    puts 'run_container accepts a container name and an argument list'
   end
+  image = args.shift
+  _images([image])
+  command = args.empty? ? '/bin/bash' : args.join(' ')
+  _run_container(image, '-it', command: command,
+    data_containers: DAEMON_TO_DATA_CONTAINERS[args.first])
 end
 
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
@@ -154,10 +162,17 @@ def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
   end
 end
 
-def_command :rm_containers, 'Remove stopped containers' do |args|
+def_command :rm_containers, 'Remove stopped (non-data) containers' do |args|
   containers_to_stop_regex = "(#{_images(args).join('|')})"
   exec_cmd 'containers=$(docker ps -a | sed -e \'s/.* \([^ ]*$\)/\1/\' | ' \
     "egrep -v '(NAMES|-data)$' | egrep -- '#{containers_to_stop_regex}'); " \
+    'if [ ! -z "$containers" ]; then docker rm $containers; fi'
+end
+
+def_command(
+  :rm_all_containers, 'Remove all stopped (non-data) containers') do |args|
+  exec_cmd 'containers=$(docker ps -a | sed -e \'s/.* \([^ ]*$\)/\1/\' | ' \
+    "egrep -v '(NAMES|-data)$'); " \
     'if [ ! -z "$containers" ]; then docker rm $containers; fi'
 end
 
