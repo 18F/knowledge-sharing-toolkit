@@ -163,22 +163,19 @@ def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
 end
 
 def_command :rm_containers, 'Remove stopped (non-data) containers' do |args|
-  containers_to_stop_regex = "(#{_images(args).join('|')})"
-  exec_cmd 'containers=$(docker ps -a | sed -e \'s/.* \([^ ]*$\)/\1/\' | ' \
-    "egrep -v '(NAMES|-data)$' | egrep -- '#{containers_to_stop_regex}'); " \
-    'if [ ! -z "$containers" ]; then docker rm $containers; fi'
-end
-
-def_command(
-  :rm_all_containers, 'Remove all stopped (non-data) containers') do |args|
-  exec_cmd 'containers=$(docker ps -a | sed -e \'s/.* \([^ ]*$\)/\1/\' | ' \
-    "egrep -v '(NAMES|-data)$'); " \
-    'if [ ! -z "$containers" ]; then docker rm $containers; fi'
+  images = _images(args)
+  containers = `docker ps -a`.split("\n")[1..-1]
+    .map { |container| container.match(/ ([^ ]*)$/)[1] }
+    .reject { |container| container.end_with?('-data') }
+    .select { |container| images.include?(container) }
+  exec_cmd "docker rm #{containers.join(' ')}" unless containers.empty?
 end
 
 def_command :rm_images, 'Remove unused images' do
-  exec_cmd 'docker images | grep \'^<none>\' | awk \'{ print $3 }\' | ' \
-    'xargs docker rmi'
+  unused_images = `docker images`.split("\n")[1..-1]
+    .select { |image| image.start_with?('<none>') }
+    .map { |image| image.gsub(/  */, ' ').split(' ')[2] }
+  exec_cmd "docker rmi #{unused_images.join(' ')}" unless unused_images.empty?
 end
 
 execute_command ARGV
