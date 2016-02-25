@@ -1,6 +1,5 @@
 #! /bin/bash -e
 
-source $APP_SYS_ROOT/ssh/config/prep-ssh.sh
 source /etc/profile.d/gvm.sh
 source config/env-secret.sh
 
