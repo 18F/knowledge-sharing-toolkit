@@ -18,7 +18,7 @@
   "assetRoot":        "/guides-template",
   "fileLockWaitTime": 30000,
   "fileLockPollTime": 1000,
-  "secretKeyFile":    "/usr/local/18f/pages/pages.secret",
+  "secretKeyFile":    "/usr/local/18f/pages/config/pages.secret",
   "builders": [
     {
       "branch":           "18f-pages",
