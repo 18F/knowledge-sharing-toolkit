@@ -8,4 +8,6 @@ USER authdelegate
 WORKDIR $APP_SYS_ROOT/authdelegate
 
 EXPOSE 9000
-CMD ["/bin/bash", "-l", "-c", "authdelegate config/authdelegate-config.json"]
+COPY ["entrypoint.sh", "entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["run-server"]
