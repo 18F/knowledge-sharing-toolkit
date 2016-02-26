@@ -156,9 +156,9 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
 end
 
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
-  _daemons(args).each do |image|
-    exec_cmd "if $(docker ps -a | grep -q ' #{image_name}$'); then " \
-      "docker stop #{image_name}; fi"
+  _daemons(args).each do |daemon|
+    exec_cmd "if $(docker ps -a | grep -q ' #{daemon}$'); then " \
+      "docker stop #{daemon}; fi"
   end
 end
 

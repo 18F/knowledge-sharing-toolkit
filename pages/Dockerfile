@@ -13,7 +13,6 @@ USER pages
 WORKDIR $APP_SYS_ROOT/pages
 
 EXPOSE 5000
-CMD ["/bin/bash", "-l", "-c", \
-     "source config/env-secret.sh && \
-      aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites && \
-      18f-pages config/pages-config.json"]
+COPY ["entrypoint.sh", "entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["run-server"]

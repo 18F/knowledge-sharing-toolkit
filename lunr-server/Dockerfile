@@ -8,4 +8,6 @@ USER lunr-server
 WORKDIR $APP_SYS_ROOT/lunr-server
 
 EXPOSE 7777
-CMD ["/bin/bash", "-l", "-c", "lunr-server config/lunr-server-config.json"]
+COPY ["entrypoint.sh", "entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["run-server"]

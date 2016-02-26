@@ -8,7 +8,6 @@ USER hmacproxy
 WORKDIR $APP_SYS_ROOT/hmacproxy
 
 EXPOSE 8083
-CMD ["/bin/bash", "-l", "-c", \
-     "source config/env-secret.sh && \
-      hmacproxy -auth -port 8083 -secret $HMACAUTH_SECRET \
-      -sign-header Team-Api-Signature -headers Content-Type,Date"]
+COPY ["entrypoint.sh", "entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["run-server"]

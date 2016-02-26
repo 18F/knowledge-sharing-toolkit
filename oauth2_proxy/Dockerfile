@@ -8,5 +8,6 @@ USER oauth2_proxy
 WORKDIR $APP_SYS_ROOT/oauth2_proxy
 
 EXPOSE 4180
-CMD ["/bin/bash", "-l", "-c", \
-     "source env-secret.sh && oauth2_proxy --config=config/oauth2_proxy.cfg"]
+COPY ["entrypoint.sh", "entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["run-server"]

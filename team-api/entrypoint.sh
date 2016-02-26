@@ -1,6 +1,9 @@
 #! /bin/bash -e
 
-source $APP_SYS_ROOT/ssh/config/prep-ssh.sh
+if [ -f $APP_SYS_ROOT/ssh/config/prep-ssh.sh ]; then
+  source $APP_SYS_ROOT/ssh/config/prep-ssh.sh
+fi
+
 source /etc/profile.d/nvm.sh
 
 # For some reason, sourcing rbenv triggers an exit condition.
