@@ -213,7 +213,7 @@ end
 
 def_command :run_hmacproxy, 'Run hmacproxy that will sign requests' do |args|
   if args.size != 1
-    puts "You must specify a singe upstream host as an argument to " \
+    puts "You must specify a single upstream host as an argument to " \
       "run_hmacproxy."
     exit 1
   end
