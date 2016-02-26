@@ -36,13 +36,13 @@ NETWORK = '18f/knowledge-sharing-toolkit'
 IMAGES = %w(
   dev-base
   dev-standard
-  nginx
   oauth2_proxy
   hmacproxy
   authdelegate
   pages
   lunr-server
   team-api
+  nginx
 )
 
 DATA_CONTAINERS = {
@@ -53,13 +53,6 @@ DATA_CONTAINERS = {
 DAEMONS = {
   'lunr-server' => {
     data_containers: ['pages-data:ro'],
-  },
-  'nginx' => {
-    flags: '-p 80:80 -p 443:443',
-    data_containers: [
-      'pages-data:ro',
-      'team-api-data:ro',
-    ],
   },
   'pages' => {
     data_containers: ['pages-data:rw']
@@ -75,6 +68,13 @@ DAEMONS = {
   },
   'team-api' => {
     data_containers: ['team-api-data:rw'],
+  },
+  'nginx' => {
+    flags: '-p 80:80 -p 443:443',
+    data_containers: [
+      'pages-data:ro',
+      'team-api-data:ro',
+    ],
   },
 }
 
@@ -96,8 +96,9 @@ end
 
 def _data_containers(args)
   known_containers = DATA_CONTAINERS.keys
-  return known_containers if args.empty?
-  _check_names(args, known_containers, 'data container')
+  args.empty? ?
+    known_containers :
+    _check_names(args, known_containers, 'data container')
 end
 
 def _daemons(args)
@@ -114,7 +115,7 @@ def_command :build_images, 'Build Docker images' do |args|
   end
 end
 
-def_command :create_data_containers, 'Create Docker data containers' do |args|
+def_command :create_data_containers, 'Create data containers' do |args = []|
   _data_containers(args).each do |container_name|
     base_image = DATA_CONTAINERS[container_name]
     exec_cmd "if ! $(docker ps -a | grep -q ' #{container_name}$'); then " \
@@ -133,8 +134,9 @@ def _network_is_running
 end
 
 def_command :create_network, 'Start the local network between containers' do
-  return if _network_is_running
-  exec_cmd "docker network create --driver bridge #{NETWORK}"
+  if !_network_is_running
+    exec_cmd "docker network create --driver bridge #{NETWORK}"
+  end
 end
 
 def_command :rm_network, 'Start the local network between containers' do
@@ -171,7 +173,7 @@ def _run_container(image_name, options, command: '', data_containers: [])
     "#{_volumes_from(data_containers)} #{image_name} #{command}"
 end
 
-def_command :run_daemons, 'Run Docker containers as daemons' do |args|
+def_command :run_daemons, 'Run Docker containers as daemons' do |args = []|
   _daemons(args).each do |daemon_name|
     daemon = DAEMONS[daemon_name]
     _run_container(daemon_name, "-d #{daemon[:flags]}",
@@ -213,7 +215,7 @@ def_command :stop_hmacproxy, 'Stop the hmacproxy signing container' do
     'docker stop hmacproxy-sign; docker rm hmacproxy-sign; fi'
 end
 
-def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
+def_command :stop_daemons, 'Stop containers running as daemons' do |args = []|
   _daemons(args).each do |daemon|
     exec_cmd "if $(docker ps -a | grep -q ' #{daemon}$'); then " \
       "docker stop #{daemon}; fi"
@@ -236,6 +238,28 @@ def_command :rm_images, 'Remove unused images' do
     .select { |image| image.start_with?('<none>') }
     .map { |image| image.gsub(/  */, ' ').split(' ')[2] }
   exec_cmd "docker rmi #{unused_images.join(' ')}" unless unused_images.empty?
+end
+
+command_group :system, 'Commands to start and stop the entire system'
+
+def_command :start, 'Start the entire system' do
+  puts "Starting the system...\nCreating network #{NETWORK}:"
+  create_network
+  puts 'Creating data containers (if they don\'t already exist):'
+  create_data_containers
+  puts 'Running daemon containers:'
+  run_daemons
+  puts 'System start complete.'
+end
+
+def_command :stop, 'Stop the entire system' do
+  puts "Stopping the system...\nStopping all daemons:"
+  stop_daemons
+  puts 'Removing non-data containers:'
+  rm_containers
+  puts "Stopping network #{NETWORK}:"
+  rm_network
+  puts 'System stop complete.'
 end
 
 execute_command ARGV
