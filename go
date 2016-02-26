@@ -27,10 +27,11 @@ end
 extend GoScript
 check_ruby_version '2.3.0'
 
-command_group :build, 'Image building commands'
+command_group :build, 'Image and container building commands'
 
 LOCAL_ROOT_DIR = File.absolute_path(File.dirname(__FILE__))
 APP_SYS_ROOT = '/usr/local/18f'
+NETWORK = '18f/knowledge-sharing-toolkit'
 
 IMAGES = %w(
   dev-base
@@ -123,6 +124,23 @@ def_command :create_data_containers, 'Create Docker data containers' do |args|
   end
 end
 
+command_group :run_containers, 'Container running commands'
+
+def _network_is_running
+  `docker network ls`.split("\n")[1..-1]
+    .map { |network| network.gsub(/  */, ' ').split[1] }
+    .include?(NETWORK)
+end
+
+def_command :create_network, 'Start the local network between containers' do
+  return if _network_is_running
+  exec_cmd "docker network create --driver bridge #{NETWORK}"
+end
+
+def_command :rm_network, 'Start the local network between containers' do
+  exec_cmd "docker network rm #{NETWORK}" if _network_is_running
+end
+
 def _config_dir_volume_binding(image_name)
   local_config_dir = File.join(LOCAL_ROOT_DIR, image_name, 'config')
   image_config_dir = "#{APP_SYS_ROOT}/#{image_name}/config"
@@ -149,7 +167,8 @@ def _run_container(image_name, options, command: '', data_containers: [])
   exec_cmd "docker run #{options} --name #{image_name} " \
     "#{_config_dir_volume_binding(image_name)} " \
     "#{_ssh_config_dir_volume_binding(image_name)} " \
-    "#{_volumes_from(DATA_CONTAINERS.keys)} #{image_name} #{command}"
+    "#{_network_is_running ? "--net=#{NETWORK}" : '' } " \
+    "#{_volumes_from(data_containers)} #{image_name} #{command}"
 end
 
 def_command :run_daemons, 'Run Docker containers as daemons' do |args|
@@ -171,12 +190,18 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
     data_containers: DAEMONS[image][:data_containers])
 end
 
+def_command :reload_nginx, 'Reload Nginx after a config change' do
+  exec_cmd 'docker kill -s HUP nginx'
+end
+
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
   _daemons(args).each do |daemon|
     exec_cmd "if $(docker ps -a | grep -q ' #{daemon}$'); then " \
       "docker stop #{daemon}; fi"
   end
 end
+
+command_group :cleanup, 'Image and container cleanup commands'
 
 def_command :rm_containers, 'Remove stopped (non-data) containers' do |args|
   images = _images(args)
