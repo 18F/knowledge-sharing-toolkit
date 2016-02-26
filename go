@@ -32,6 +32,7 @@ command_group :build, 'Image and container building commands'
 LOCAL_ROOT_DIR = File.absolute_path(File.dirname(__FILE__))
 APP_SYS_ROOT = '/usr/local/18f'
 NETWORK = '18f/knowledge-sharing-toolkit'
+GITHUB_REPOSITORY = '18F/knowledge-sharing-toolkit.git'
 
 IMAGES = %w(
   dev-base
@@ -79,6 +80,20 @@ DAEMONS = {
 }
 
 NEEDS_SSH = %w(team-api)
+
+REMOTE_HOST = 'ubuntu@hub.18f.gov'
+REMOTE_ROOT = 'knowledge-sharing-toolkit'
+SECRETS_BUNDLE_NAME = '18f-knowledge-sharing-toolkit-secrets'
+SECRETS_BUNDLE_FILE = "#{SECRETS_BUNDLE_NAME}.tar.bz2"
+SECRET_FILES = %w(
+  */config/env-secret.sh
+  nginx/config/auth/pages-passwords.txt
+  nginx/config/ssl/dhparam*
+  nginx/config/ssl/keys/*
+  pages/config/pages.secret
+  ssh/config/id_rsa*
+  ssh/config/known_hosts*
+)
 
 def _check_names(names, collection, type_label)
   names.each do |name|
@@ -240,26 +255,66 @@ def_command :rm_images, 'Remove unused images' do
   exec_cmd "docker rmi #{unused_images.join(' ')}" unless unused_images.empty?
 end
 
-command_group :system, 'Commands to start and stop the entire system'
+command_group :remote, 'Remote server access and management'
 
-def_command :start, 'Start the entire system' do
-  puts "Starting the system...\nCreating network #{NETWORK}:"
-  create_network
-  puts 'Creating data containers (if they don\'t already exist):'
-  create_data_containers
-  puts 'Running daemon containers:'
-  run_daemons
-  puts 'System start complete.'
+def _exec_remote(remote_command)
+  exec_cmd "ssh #{REMOTE_HOST} 'cd #{REMOTE_ROOT} && #{remote_command}'"
 end
 
-def_command :stop, 'Stop the entire system' do
-  puts "Stopping the system...\nStopping all daemons:"
-  stop_daemons
-  puts 'Removing non-data containers:'
-  rm_containers
-  puts "Stopping network #{NETWORK}:"
-  rm_network
-  puts 'System stop complete.'
+def_command :init_remote, 'Initialize the remote system repository' do
+  exec_cmd "ssh #{REMOTE_HOST} " \
+    "'git clone git@github.com:#{GITHUB_REPOSITORY} #{REMOTE_ROOT}'"
+end
+
+def_command :sync_remote, 'Synchronize the remote system repository' do
+  _exec_remote 'git fetch origin master && ' \
+    'git clean -f && git reset --hard origin/master'
+end
+
+def_command :ssh_remote, 'Open an interactive SSH session to the remote' do
+  exec "ssh -t #{REMOTE_HOST} 'cd #{REMOTE_ROOT} && exec /bin/bash -l'"
+end
+
+command_group :secrets, 'Commands to manage system secrets'
+
+def _ensure_secrets_bundle_does_not_exist
+  if File.exist?(SECRETS_BUNDLE_FILE)
+    puts "Secret bundle file #{SECRETS_BUNDLE_FILE} already exists;\n" \
+      "please delete or rename it before running this command."
+    exit 1
+  end
+end
+
+def _ensure_secrets_bundle_exists
+  if !File.exist?(SECRETS_BUNDLE_FILE)
+    puts "Secret bundle file #{SECRETS_BUNDLE_FILE} does not exist;\n" \
+      "please run `./go bundle_secrets` before running this command."
+    exit 1
+  end
+end
+
+def_command :bundle_secrets, 'Create a bundle from local secret files' do
+  _ensure_secrets_bundle_does_not_exist
+  secret_files = Dir.glob(SECRET_FILES)
+  exec_cmd "tar cvf #{SECRETS_BUNDLE_NAME}.tar #{secret_files.join(' ')}"
+  exec_cmd "bzip2 -9 #{SECRETS_BUNDLE_NAME}.tar"
+end
+
+def_command :unpack_secret_bundle, 'Unpack the secret bundle' do
+  _ensure_secret_bundle_exists
+  exec_cmd "bzip2 -dc #{SECRETS_BUNDLE_FILE} | tar xvf -"
+end
+
+def_command :push_secrets, 'Push the secret bundle and unpack it' do
+  bundle_secrets if !File.exist?(SECRETS_BUNDLE_FILE)
+  exec_cmd "scp #{SECRETS_BUNDLE_FILE} #{REMOTE_HOST}:#{REMOTE_ROOT}/"
+  _exec_remote "bzip2 -dc #{SECRETS_BUNDLE_FILE} | tar xvf -"
+end
+
+def_command :fetch_secrets, 'Fetch the secret bundle from the remote host' do
+  _ensure_secrets_bundle_does_not_exist
+  _exec_remote "rm -f #{SECRETS_BUNDLE_FILE} && ruby ./go bundle_secrets"
+  exec_cmd "scp #{REMOTE_HOST}:#{REMOTE_ROOT}/#{SECRETS_BUNDLE_FILE} ."
 end
 
 command_group :system, 'Commands to start and stop the entire system'
