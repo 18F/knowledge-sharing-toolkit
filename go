@@ -224,7 +224,7 @@ end
 
 command_group :cleanup, 'Image and container cleanup commands'
 
-def_command :rm_containers, 'Remove stopped (non-data) containers' do |args|
+def_command :rm_containers, 'Remove stopped non-data containers' do |args = []|
   images = _images(args)
   containers = `docker ps -a`.split("\n")[1..-1]
     .map { |container| container.match(/ ([^ ]*)$/)[1] }
@@ -238,6 +238,28 @@ def_command :rm_images, 'Remove unused images' do
     .select { |image| image.start_with?('<none>') }
     .map { |image| image.gsub(/  */, ' ').split(' ')[2] }
   exec_cmd "docker rmi #{unused_images.join(' ')}" unless unused_images.empty?
+end
+
+command_group :system, 'Commands to start and stop the entire system'
+
+def_command :start, 'Start the entire system' do
+  puts "Starting the system...\nCreating network #{NETWORK}:"
+  create_network
+  puts 'Creating data containers (if they don\'t already exist):'
+  create_data_containers
+  puts 'Running daemon containers:'
+  run_daemons
+  puts 'System start complete.'
+end
+
+def_command :stop, 'Stop the entire system' do
+  puts "Stopping the system...\nStopping all daemons:"
+  stop_daemons
+  puts 'Removing non-data containers:'
+  rm_containers
+  puts "Stopping network #{NETWORK}:"
+  rm_network
+  puts 'System stop complete.'
 end
 
 command_group :system, 'Commands to start and stop the entire system'
