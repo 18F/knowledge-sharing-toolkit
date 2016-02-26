@@ -59,26 +59,39 @@ the [Deployment](#deployment) section below as well.
 
 ## Running locally
 
-Add the following to the `/etc/hosts` file of your development machine,
-commenting out any services you're not currently attempting to emulate
-locally:
+1. Add the following to the `/etc/hosts` file of your development machine,
+   commenting out any services you're not currently attempting to emulate
+   locally:
+   ```
+   # Testing locally with 18F/knowledge-sharing-toolkit
+   # Run `docker-machine env` to get the current IP.
+   192.168.99.100 pages.18f.gov
+   192.168.99.100 pages-staging.18f.gov
+   192.168.99.100 pages-internal.18f.gov
+   192.168.99.100 pages-releases.18f.gov
+   192.168.99.100 team-api.18f.gov
+   192.168.99.100 hub.18f.gov
+   192.168.99.100 handbook.18f.gov
+   ```
 
-```
-# Testing locally with 18F/knowledge-sharing-toolkit
-# Run `docker-machine env` to get the current IP.
-192.168.99.100 pages.18f.gov
-192.168.99.100 pages-staging.18f.gov
-192.168.99.100 pages-internal.18f.gov
-192.168.99.100 pages-releases.18f.gov
-192.168.99.100 team-api.18f.gov
-192.168.99.100 hub.18f.gov
-192.168.99.100 handbook.18f.gov
-```
+1. Get a copy of the `SECRETS_BUNDLE_FILE` from someone or run `./go
+   fetch_secrets` to get a bundle of the secret config files from the server.
+   Then run `./go unpack_secret_bundle` to unpack the secret files into your
+   repository.
+   
+   _If `git status` shows any of these files appearing in your working
+   directory, file a pull request to add them to `.gitignore`
+   **immediately**._
 
-Then bring the entire system up using `./go start`. You should be able to
-access any of the hosts from your `/etc/hosts` file that you've configured,
-and have the content served by the Dockerized system running locally. You can
-take the system down with `./go stop`.
+   - Alternatively, you can update the config files in each image's `config/`
+     directory to not depend on these secrets, to fill them in with dummy
+     data, and/or to not serve SSL.
+
+1. Bring the entire system up using `./go start`. You should be able to access
+   any of the hosts from your `/etc/hosts` file that you've configured, and
+   have the content served by the Dockerized system running locally.
+   
+   You can halt the entire system with `./go stop`.
 
 ### Rebuilding specific images
 
