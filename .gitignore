@@ -1,13 +1,13 @@
-.DS_store
+*/config/env-secret.sh
 .*.swp
+.DS_store
 .github_token
+.ruby-version
 18f-knowledge-sharing-toolkit-secrets.*
+\#*\#
 nginx/config/auth/pages-passwords.txt
 nginx/config/ssl/dhparam*
 nginx/config/ssl/keys/*
 pages/config/pages.secret
-*/config/env-secret.sh
 ssh/config/id_rsa*
 ssh/config/known_hosts*
-\#*\#
-.ruby-version
