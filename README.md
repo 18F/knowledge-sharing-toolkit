@@ -26,7 +26,7 @@ the [Deployment](#deployment) section below as well.
 1. Install [Docker](https://www.docker.com/) on your system. The commands
    encapsulated in the [`./go` script](./go) are based on version 1.10.0.
 
-1. Run `docker-machine` start to start the Docker host, followed by
+1. Run `docker-machine start` to start the Docker host, followed by
    `eval $(docker-machine env)` to configure your shell environment.
 
 1. After cloning this repository, install all the images by running `./go
