@@ -7,7 +7,7 @@ RUN groupadd -r hmacproxy && useradd -r -m -g hmacproxy hmacproxy
 USER hmacproxy
 WORKDIR $APP_SYS_ROOT/hmacproxy
 
-EXPOSE 8083
+EXPOSE 8083 8084
 COPY ["entrypoint.sh", "entrypoint.sh"]
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["run-server"]

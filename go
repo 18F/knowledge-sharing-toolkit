@@ -194,6 +194,25 @@ def_command :reload_nginx, 'Reload Nginx after a config change' do
   exec_cmd 'docker kill -s HUP nginx'
 end
 
+def_command :run_hmacproxy, 'Run hmacproxy that will sign requests' do |args|
+  if args.size != 1
+    puts "You must specify a singe upstream host as an argument to " \
+      "run_hmacproxy."
+    exit 1
+  end
+  upstream_host = args.first
+  exec_cmd "docker run -d --name hmacproxy-sign --net=#{NETWORK} " \
+    "-p 8084:8084 #{_config_dir_volume_binding('hmacproxy')} " \
+    "hmacproxy run-proxy #{upstream_host}"
+  puts "Requests to http://#{`docker-machine ip`.rstrip}:8084 " \
+    "will be forwarded to #{upstream_host}."
+end
+
+def_command :stop_hmacproxy, 'Stop the hmacproxy signing container' do
+  exec_cmd 'if $(docker ps | grep -q \'hmacproxy-sign$\'); then ' \
+    'docker stop hmacproxy-sign; docker rm hmacproxy-sign; fi'
+end
+
 def_command :stop_daemons, 'Stop Docker containers running as daemons' do |args|
   _daemons(args).each do |daemon|
     exec_cmd "if $(docker ps -a | grep -q ' #{daemon}$'); then " \
