@@ -1,7 +1,7 @@
 .DS_store
 .*.swp
 .github_token
-nginx/config/vhosts/pages-passwords.txt
+nginx/config/auth/pages-passwords.txt
 nginx/config/ssl/dhparam*
 nginx/config/ssl/keys/*
 pages/config/pages.secret
