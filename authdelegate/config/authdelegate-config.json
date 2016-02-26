@@ -1,10 +1,10 @@
 {
   "port": 9000,
   "upstreams": [
-    { "url": "http://127.0.0.1:8083/",
+    { "url": "http://hmacproxy:8083/",
       "header_name": "Team-Api-Signature"
     },
-    { "url": "http://127.0.0.1:4180/oauth2/auth"
+    { "url": "http://oauth2_proxy:4180/oauth2/auth"
     }
   ]
 }
