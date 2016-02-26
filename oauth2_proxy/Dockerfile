@@ -9,4 +9,4 @@ WORKDIR $APP_SYS_ROOT/oauth2_proxy
 
 EXPOSE 4180
 CMD ["/bin/bash", "-l", "-c", \
-     "source env-secret.sh && oauth2_proxy --config=oauth2_proxy.cfg"]
+     "source env-secret.sh && oauth2_proxy --config=config/oauth2_proxy.cfg"]

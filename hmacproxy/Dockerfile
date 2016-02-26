@@ -9,6 +9,6 @@ WORKDIR $APP_SYS_ROOT/hmacproxy
 
 EXPOSE 8083
 CMD ["/bin/bash", "-l", "-c", \
-     "source env-secret.sh && \
+     "source config/env-secret.sh && \
       hmacproxy -auth -port 8083 -secret $HMACAUTH_SECRET \
       -sign-header Team-Api-Signature -headers Content-Type,Date"]
