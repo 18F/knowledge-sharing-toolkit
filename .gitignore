@@ -8,3 +8,7 @@ pages/config/pages.secret
 */config/env-secret.sh
 */config/id_rsa*
 */config/known_hosts*
+ssh/config/id_rsa*
+ssh/config/known_hosts*
+\#*\#
+.ruby-version
