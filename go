@@ -203,8 +203,9 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
   image = args.shift
   _images([image])
   command = args.empty? ? '/bin/bash' : args.join(' ')
+  data_containers = (DAEMONS[image] || {})[:data_containers]
   _run_container(image, '-it', command: command,
-    data_containers: DAEMONS[image][:data_containers])
+    data_containers: data_containers || [])
 end
 
 def_command :reload_nginx, 'Reload Nginx after a config change' do
