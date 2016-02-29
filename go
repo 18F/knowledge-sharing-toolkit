@@ -130,7 +130,7 @@ def_command :build_images, 'Build Docker images' do |args|
   end
 end
 
-def_command :create_data_containers, 'Create data containers' do |args = []|
+def_command :create_data_containers, 'Create data containers' do |args|
   _data_containers(args).each do |container_name|
     base_image = DATA_CONTAINERS[container_name]
     exec_cmd "if ! $(docker ps -a | grep -q ' #{container_name}$'); then " \
@@ -188,7 +188,7 @@ def _run_container(image_name, options, command: '', data_containers: [])
     "#{_volumes_from(data_containers)} #{image_name} #{command}"
 end
 
-def_command :run_daemons, 'Run Docker containers as daemons' do |args = []|
+def_command :run_daemons, 'Run Docker containers as daemons' do |args|
   _daemons(args).each do |daemon_name|
     daemon = DAEMONS[daemon_name]
     _run_container(daemon_name, "-d #{daemon[:flags]}",
@@ -231,7 +231,7 @@ def_command :stop_hmacproxy, 'Stop the hmacproxy signing container' do
     'docker stop hmacproxy-sign; docker rm hmacproxy-sign; fi'
 end
 
-def_command :stop_daemons, 'Stop containers running as daemons' do |args = []|
+def_command :stop_daemons, 'Stop containers running as daemons' do |args|
   _daemons(args).each do |daemon|
     exec_cmd "if $(docker ps -a | grep -q ' #{daemon}$'); then " \
       "docker stop #{daemon}; fi"
@@ -240,7 +240,7 @@ end
 
 command_group :cleanup, 'Image and container cleanup commands'
 
-def_command :rm_containers, 'Remove stopped non-data containers' do |args = []|
+def_command :rm_containers, 'Remove stopped non-data containers' do |args|
   images = _images(args)
   containers = `docker ps -a`.split("\n")[1..-1]
     .map { |container| container.match(/ ([^ ]*)$/)[1] }
