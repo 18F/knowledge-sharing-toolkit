@@ -13,7 +13,7 @@ if [ -f config/env-secret.sh ]; then
 fi
 
 if [ "$1" = "run-server" ]; then
-  aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites && \
+  aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites --delete && \
       18f-pages config/pages-config.json
   exec 18f-pages config/pages-config.json
 fi

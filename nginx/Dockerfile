@@ -1,6 +1,6 @@
-FROM dev-standard
+FROM dev-base
 
-ENV NGINX_VERSION 1.9.11
+ENV NGINX_VERSION 1.9.12
 ENV ZLIB_VERSION 1.2.8
 ENV PCRE_VERSION 8.38
 ENV OPENSSL_VERSION 1.0.2f
@@ -40,6 +40,7 @@ RUN cd $APP_SYS_ROOT/src/nginx-$NGINX_VERSION \
    && make install && rm -rf $APP_SYS_ROOT/src \
    && strip /usr/local/18f/nginx/sbin/nginx
 
+USER root
 RUN groupadd -r nginx && useradd -r -g nginx nginx
 
 WORKDIR $APP_SYS_ROOT/nginx
