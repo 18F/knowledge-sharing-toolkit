@@ -1,9 +1,9 @@
 FROM dev-base
 
-ENV NGINX_VERSION 1.9.12
-ENV ZLIB_VERSION 1.2.8
-ENV PCRE_VERSION 8.38
-ENV OPENSSL_VERSION 1.0.2f
+ENV NGINX_VERSION=1.9.12 \
+    ZLIB_VERSION=1.2.8 \
+    PCRE_VERSION=8.38 \
+    OPENSSL_VERSION=1.0.2g
 
 RUN mkdir -p $APP_SYS_ROOT/src && cd $APP_SYS_ROOT/src \
     && sh -c "curl http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz | gzip -dc | tar xf -" \
