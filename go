@@ -106,19 +106,19 @@ def _check_names(names, collection, type_label)
 end
 
 def _images(args)
-  args.empty? ? IMAGES : _check_names(args, IMAGES, 'image')
+  args.nil? ? IMAGES : _check_names(args, IMAGES, 'image')
 end
 
 def _data_containers(args)
   known_containers = DATA_CONTAINERS.keys
-  args.empty? ?
+  args.nil? ?
     known_containers :
     _check_names(args, known_containers, 'data container')
 end
 
 def _daemons(args)
   daemons = DAEMONS.keys
-  args.empty? ? daemons : _check_names(args, daemons, 'daemon')
+  args.nil? ? daemons : _check_names(args, daemons, 'daemon')
 end
 
 def_command :build_images, 'Build Docker images' do |args|
