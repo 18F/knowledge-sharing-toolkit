@@ -82,7 +82,7 @@ DAEMONS = {
 NEEDS_SSH = %w(team-api)
 
 REMOTE_HOST = 'ubuntu@hub.18f.gov'
-REMOTE_ROOT = 'knowledge-sharing-toolkit'
+REMOTE_ROOT = '/usr/local/18f/knowledge-sharing-toolkit'
 SECRETS_BUNDLE_NAME = '18f-knowledge-sharing-toolkit-secrets'
 SECRETS_BUNDLE_FILE = "#{SECRETS_BUNDLE_NAME}.tar.bz2"
 SECRET_FILES = %w(
@@ -106,19 +106,19 @@ def _check_names(names, collection, type_label)
 end
 
 def _images(args)
-  args.nil? ? IMAGES : _check_names(args, IMAGES, 'image')
+  (args.nil? || args.empty?) ? IMAGES : _check_names(args, IMAGES, 'image')
 end
 
 def _data_containers(args)
   known_containers = DATA_CONTAINERS.keys
-  args.nil? ?
+  (args.nil? || args.empty?) ?
     known_containers :
     _check_names(args, known_containers, 'data container')
 end
 
 def _daemons(args)
   daemons = DAEMONS.keys
-  args.nil? ? daemons : _check_names(args, daemons, 'daemon')
+  (args.nil? || args.empty?) ? daemons : _check_names(args, daemons, 'daemon')
 end
 
 def_command :build_images, 'Build Docker images' do |args|
@@ -197,7 +197,7 @@ def_command :run_daemons, 'Run Docker containers as daemons' do |args|
 end
 
 def_command :run_container, 'Run a shell within a Docker container' do |args|
-  if args.empty?
+  if (args.nil? || args.empty?)
     puts 'run_container accepts a container name and an argument list'
   end
   image = args.shift
@@ -213,7 +213,7 @@ def_command :reload_nginx, 'Reload Nginx after a config change' do
 end
 
 def_command :run_hmacproxy, 'Run hmacproxy that will sign requests' do |args|
-  if args.size != 1
+  if args.nil? || args.size != 1
     puts "You must specify a single upstream host as an argument to " \
       "run_hmacproxy."
     exit 1
