@@ -1,5 +1,9 @@
 {
   "corpora": [
+    { "name": "Hub",
+      "baseurl": "https://hub.18f.gov",
+      "indexPath": "/usr/local/18f/pages/sites/pages-internal.18f.gov/hub/search-index.json"
+    },
     { "name": "Guides Template",
       "baseurl": "https://pages.18f.gov",
       "indexPath": "/usr/local/18f/pages/sites/pages.18f.gov/guides-template/search-index.json"
