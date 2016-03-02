@@ -1,6 +1,6 @@
 FROM dev-standard
 
-ENV _TEAM_API_SERVER_VERSION 0.1.1
+ENV _TEAM_API_SERVER_VERSION 0.1.6
 RUN bash -l -c "npm install -g team-api-server@$_TEAM_API_SERVER_VERSION"
 
 USER root
