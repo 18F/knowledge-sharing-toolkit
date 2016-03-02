@@ -1,9 +1,9 @@
-FROM dev-standard
+FROM dev-base
 
-ENV NGINX_VERSION 1.9.11
-ENV ZLIB_VERSION 1.2.8
-ENV PCRE_VERSION 8.38
-ENV OPENSSL_VERSION 1.0.2f
+ENV NGINX_VERSION=1.9.12 \
+    ZLIB_VERSION=1.2.8 \
+    PCRE_VERSION=8.38 \
+    OPENSSL_VERSION=1.0.2g
 
 RUN mkdir -p $APP_SYS_ROOT/src && cd $APP_SYS_ROOT/src \
     && sh -c "curl http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz | gzip -dc | tar xf -" \
@@ -40,6 +40,7 @@ RUN cd $APP_SYS_ROOT/src/nginx-$NGINX_VERSION \
    && make install && rm -rf $APP_SYS_ROOT/src \
    && strip /usr/local/18f/nginx/sbin/nginx
 
+USER root
 RUN groupadd -r nginx && useradd -r -g nginx nginx
 
 WORKDIR $APP_SYS_ROOT/nginx
