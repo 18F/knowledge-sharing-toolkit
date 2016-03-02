@@ -7,7 +7,7 @@ RUN groupadd -r pages && useradd -r -m -g pages pages && \
 USER 18f
 VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites
 
-ENV _PAGES_VERSION=0.3.1 \
+ENV _PAGES_VERSION=0.3.2 \
     _JEKYLL_VERSION=3.1.2 \
     _AWSCLI_VERSION=1.10.8
 RUN bash -l -c "npm install -g 18f-pages-server@$_PAGES_VERSION && \
