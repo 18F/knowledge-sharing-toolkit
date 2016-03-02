@@ -32,6 +32,7 @@ command_group :build, 'Image and container building commands'
 LOCAL_ROOT_DIR = File.absolute_path(File.dirname(__FILE__))
 APP_SYS_ROOT = '/usr/local/18f'
 NETWORK = '18f/knowledge-sharing-toolkit'
+GITHUB_REPOSITORY = '18F/knowledge-sharing-toolkit.git'
 
 IMAGES = %w(
   dev-base
@@ -80,6 +81,20 @@ DAEMONS = {
 
 NEEDS_SSH = %w(team-api)
 
+REMOTE_HOST = 'ubuntu@hub.18f.gov'
+REMOTE_ROOT = 'knowledge-sharing-toolkit'
+SECRETS_BUNDLE_NAME = '18f-knowledge-sharing-toolkit-secrets'
+SECRETS_BUNDLE_FILE = "#{SECRETS_BUNDLE_NAME}.tar.bz2"
+SECRET_FILES = %w(
+  */config/env-secret.sh
+  nginx/config/auth/pages-passwords.txt
+  nginx/config/ssl/dhparam*
+  nginx/config/ssl/keys/*
+  pages/config/pages.secret
+  ssh/config/id_rsa*
+  ssh/config/known_hosts*
+)
+
 def _check_names(names, collection, type_label)
   names.each do |name|
     next if collection.include?(name)
@@ -115,7 +130,7 @@ def_command :build_images, 'Build Docker images' do |args|
   end
 end
 
-def_command :create_data_containers, 'Create data containers' do |args = []|
+def_command :create_data_containers, 'Create data containers' do |args|
   _data_containers(args).each do |container_name|
     base_image = DATA_CONTAINERS[container_name]
     exec_cmd "if ! $(docker ps -a | grep -q ' #{container_name}$'); then " \
@@ -173,7 +188,7 @@ def _run_container(image_name, options, command: '', data_containers: [])
     "#{_volumes_from(data_containers)} #{image_name} #{command}"
 end
 
-def_command :run_daemons, 'Run Docker containers as daemons' do |args = []|
+def_command :run_daemons, 'Run Docker containers as daemons' do |args|
   _daemons(args).each do |daemon_name|
     daemon = DAEMONS[daemon_name]
     _run_container(daemon_name, "-d #{daemon[:flags]}",
@@ -188,8 +203,9 @@ def_command :run_container, 'Run a shell within a Docker container' do |args|
   image = args.shift
   _images([image])
   command = args.empty? ? '/bin/bash' : args.join(' ')
+  data_containers = (DAEMONS[image] || {})[:data_containers]
   _run_container(image, '-it', command: command,
-    data_containers: DAEMONS[image][:data_containers])
+    data_containers: data_containers || [])
 end
 
 def_command :reload_nginx, 'Reload Nginx after a config change' do
@@ -198,7 +214,7 @@ end
 
 def_command :run_hmacproxy, 'Run hmacproxy that will sign requests' do |args|
   if args.size != 1
-    puts "You must specify a singe upstream host as an argument to " \
+    puts "You must specify a single upstream host as an argument to " \
       "run_hmacproxy."
     exit 1
   end
@@ -215,7 +231,7 @@ def_command :stop_hmacproxy, 'Stop the hmacproxy signing container' do
     'docker stop hmacproxy-sign; docker rm hmacproxy-sign; fi'
 end
 
-def_command :stop_daemons, 'Stop containers running as daemons' do |args = []|
+def_command :stop_daemons, 'Stop containers running as daemons' do |args|
   _daemons(args).each do |daemon|
     exec_cmd "if $(docker ps -a | grep -q ' #{daemon}$'); then " \
       "docker stop #{daemon}; fi"
@@ -224,7 +240,7 @@ end
 
 command_group :cleanup, 'Image and container cleanup commands'
 
-def_command :rm_containers, 'Remove stopped (non-data) containers' do |args|
+def_command :rm_containers, 'Remove stopped non-data containers' do |args|
   images = _images(args)
   containers = `docker ps -a`.split("\n")[1..-1]
     .map { |container| container.match(/ ([^ ]*)$/)[1] }
@@ -238,6 +254,68 @@ def_command :rm_images, 'Remove unused images' do
     .select { |image| image.start_with?('<none>') }
     .map { |image| image.gsub(/  */, ' ').split(' ')[2] }
   exec_cmd "docker rmi #{unused_images.join(' ')}" unless unused_images.empty?
+end
+
+command_group :remote, 'Remote server access and management'
+
+def _exec_remote(remote_command)
+  exec_cmd "ssh #{REMOTE_HOST} 'cd #{REMOTE_ROOT} && #{remote_command}'"
+end
+
+def_command :init_remote, 'Initialize the remote system repository' do
+  exec_cmd "ssh #{REMOTE_HOST} " \
+    "'git clone git@github.com:#{GITHUB_REPOSITORY} #{REMOTE_ROOT}'"
+end
+
+def_command :sync_remote, 'Synchronize the remote system repository' do
+  _exec_remote 'git fetch origin master && ' \
+    'git clean -f && git reset --hard origin/master'
+end
+
+def_command :ssh_remote, 'Open an interactive SSH session to the remote' do
+  exec "ssh -t #{REMOTE_HOST} 'cd #{REMOTE_ROOT} && exec /bin/bash -l'"
+end
+
+command_group :secrets, 'Commands to manage system secrets'
+
+def _ensure_secrets_bundle_does_not_exist
+  if File.exist?(SECRETS_BUNDLE_FILE)
+    puts "Secret bundle file #{SECRETS_BUNDLE_FILE} already exists;\n" \
+      "please delete or rename it before running this command."
+    exit 1
+  end
+end
+
+def _ensure_secrets_bundle_exists
+  if !File.exist?(SECRETS_BUNDLE_FILE)
+    puts "Secret bundle file #{SECRETS_BUNDLE_FILE} does not exist;\n" \
+      "please run `./go bundle_secrets` before running this command."
+    exit 1
+  end
+end
+
+def_command :bundle_secrets, 'Create a bundle from local secret files' do
+  _ensure_secrets_bundle_does_not_exist
+  secret_files = Dir.glob(SECRET_FILES)
+  exec_cmd "tar cvf #{SECRETS_BUNDLE_NAME}.tar #{secret_files.join(' ')}"
+  exec_cmd "bzip2 -9 #{SECRETS_BUNDLE_NAME}.tar"
+end
+
+def_command :unpack_secret_bundle, 'Unpack the secret bundle' do
+  _ensure_secret_bundle_exists
+  exec_cmd "bzip2 -dc #{SECRETS_BUNDLE_FILE} | tar xvf -"
+end
+
+def_command :push_secrets, 'Push the secret bundle and unpack it' do
+  bundle_secrets if !File.exist?(SECRETS_BUNDLE_FILE)
+  exec_cmd "scp #{SECRETS_BUNDLE_FILE} #{REMOTE_HOST}:#{REMOTE_ROOT}/"
+  _exec_remote "bzip2 -dc #{SECRETS_BUNDLE_FILE} | tar xvf -"
+end
+
+def_command :fetch_secrets, 'Fetch the secret bundle from the remote host' do
+  _ensure_secrets_bundle_does_not_exist
+  _exec_remote "rm -f #{SECRETS_BUNDLE_FILE} && ruby ./go bundle_secrets"
+  exec_cmd "scp #{REMOTE_HOST}:#{REMOTE_ROOT}/#{SECRETS_BUNDLE_FILE} ."
 end
 
 command_group :system, 'Commands to start and stop the entire system'
