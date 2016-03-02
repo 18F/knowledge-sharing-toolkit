@@ -12,9 +12,17 @@ if [ -f config/env-secret.sh ]; then
   source config/env-secret.sh
 fi
 
+function sync_data() {
+  aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites --delete
+}
+
+if [ "$1" = "sync-data" ]; then
+  sync_data
+  exit
+fi
+
 if [ "$1" = "run-server" ]; then
-  aws s3 sync s3://18f-pages/sites $APP_SYS_ROOT/pages/sites --delete && \
-      18f-pages config/pages-config.json
+  sync_data
   exec 18f-pages config/pages-config.json
 fi
 exec "$@"

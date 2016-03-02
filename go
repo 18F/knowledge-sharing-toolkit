@@ -325,6 +325,8 @@ def_command :start, 'Start the entire system' do
   create_network
   puts 'Creating data containers (if they don\'t already exist):'
   create_data_containers
+  puts 'Sync 18F pages sites'
+  run_container(['pages', 'sync-data'])
   puts 'Running daemon containers:'
   run_daemons
   puts 'System start complete.'
