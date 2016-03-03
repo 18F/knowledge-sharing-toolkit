@@ -2,10 +2,12 @@ FROM dev-standard
 
 USER root
 RUN groupadd -r pages && useradd -r -m -g pages pages && \
-    mkdir -p $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites && \
-    chown pages:pages $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites
+    mkdir -p $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
+      $APP_SYS_ROOT/pages/bundle/cache && \
+    chown pages:pages $APP_SYS_ROOT/pages
 USER 18f
-VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites
+VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
+  $APP_SYS_ROOT/pages/bundle/cache
 
 ENV _PAGES_VERSION=0.3.2 \
     _JEKYLL_VERSION=3.1.2 \
