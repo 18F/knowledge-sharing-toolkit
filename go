@@ -79,7 +79,7 @@ DAEMONS = {
   },
 }
 
-NEEDS_SSH = %w(team-api)
+NEEDS_SSH = %w(pages team-api)
 
 REMOTE_HOST = 'ubuntu@hub.18f.gov'
 REMOTE_ROOT = '/usr/local/18f/knowledge-sharing-toolkit'
