@@ -4,7 +4,8 @@ USER root
 RUN groupadd -r pages && useradd -r -m -g pages pages && \
     mkdir -p $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
       $APP_SYS_ROOT/pages/bundle/cache && \
-    chown pages:pages $APP_SYS_ROOT/pages
+    chown pages:pages $APP_SYS_ROOT/pages/repos \
+      $APP_SYS_ROOT/pages/sites $APP_SYS_ROOT/pages/bundle/cache
 USER 18f
 VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
   $APP_SYS_ROOT/pages/bundle/cache
