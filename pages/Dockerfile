@@ -24,7 +24,7 @@ USER 18f
 VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
   $APP_SYS_ROOT/pages/bundle/cache
 
-ENV _PAGES_VERSION=0.3.2 \
+ENV _PAGES_VERSION=0.3.3 \
     _JEKYLL_VERSION=3.1.2 \
     _AWSCLI_VERSION=1.10.8
 RUN bash -l -c "npm install -g 18f-pages-server@$_PAGES_VERSION && \
