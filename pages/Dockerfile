@@ -2,10 +2,24 @@ FROM dev-standard
 
 USER root
 RUN groupadd -r pages && useradd -r -m -g pages pages && \
-    mkdir -p $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
-      $APP_SYS_ROOT/pages/bundle/cache && \
-    chown pages:pages $APP_SYS_ROOT/pages/repos \
-      $APP_SYS_ROOT/pages/sites $APP_SYS_ROOT/pages/bundle/cache
+    mkdir -p $APP_SYS_ROOT/pages/bundle/cache \
+      $APP_SYS_ROOT/pages/repos/pages.18f.gov \
+      $APP_SYS_ROOT/pages/repos/pages-staging.18f.gov \
+      $APP_SYS_ROOT/pages/repos/pages-internal.18f.gov \
+      $APP_SYS_ROOT/pages/repos/pages-releases.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages-staging.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages-internal.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages-releases.18f.gov && \
+    chown pages:pages $APP_SYS_ROOT/pages/bundle/cache \
+      $APP_SYS_ROOT/pages/repos/pages.18f.gov \
+      $APP_SYS_ROOT/pages/repos/pages-staging.18f.gov \
+      $APP_SYS_ROOT/pages/repos/pages-internal.18f.gov \
+      $APP_SYS_ROOT/pages/repos/pages-releases.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages-staging.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages-internal.18f.gov \
+      $APP_SYS_ROOT/pages/sites/pages-releases.18f.gov
 USER 18f
 VOLUME $APP_SYS_ROOT/pages/repos $APP_SYS_ROOT/pages/sites \
   $APP_SYS_ROOT/pages/bundle/cache
