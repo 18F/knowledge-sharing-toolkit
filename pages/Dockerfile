@@ -31,12 +31,6 @@ RUN bash -l -c "npm install -g 18f-pages-server@$_PAGES_VERSION && \
     gem install jekyll -v $_JEKYLL_VERSION && \
     pip install awscli==$_AWSCLI_VERSION"
 
-# Needed to avoid the dreaded:
-# Liquid Exception: incompatible character encodings: US-ASCII and UTF-8
-ENV LANG=en_US.UTF-8
-USER root
-RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8
-
 USER pages
 WORKDIR $APP_SYS_ROOT/pages
 EXPOSE 5000
