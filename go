@@ -79,7 +79,7 @@ DAEMONS = {
   },
 }
 
-NEEDS_SSH = %w(team-api)
+NEEDS_SSH = %w(pages team-api)
 
 REMOTE_HOST = 'ubuntu@hub.18f.gov'
 REMOTE_ROOT = '/usr/local/18f/knowledge-sharing-toolkit'
@@ -302,7 +302,7 @@ def_command :bundle_secrets, 'Create a bundle from local secret files' do
 end
 
 def_command :unpack_secret_bundle, 'Unpack the secret bundle' do
-  _ensure_secret_bundle_exists
+  _ensure_secrets_bundle_exists
   exec_cmd "bzip2 -dc #{SECRETS_BUNDLE_FILE} | tar xvf -"
 end
 
@@ -314,7 +314,6 @@ end
 
 def_command :fetch_secrets, 'Fetch the secret bundle from the remote host' do
   _ensure_secrets_bundle_does_not_exist
-  _exec_remote "rm -f #{SECRETS_BUNDLE_FILE} && ruby ./go bundle_secrets"
   exec_cmd "scp #{REMOTE_HOST}:#{REMOTE_ROOT}/#{SECRETS_BUNDLE_FILE} ."
 end
 

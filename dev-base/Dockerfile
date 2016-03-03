@@ -1,8 +1,13 @@
 FROM ubuntu:14.04.4
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-ENV APP_SYS_ROOT /usr/local/18f
 
-RUN apt-get install -y software-properties-common && \
+# LANG, locale-gen, and update-locale are necessary to avoid the Jekyll error:
+# Liquid Exception: incompatible character encodings: US-ASCII and UTF-8
+ENV APP_SYS_ROOT=/usr/local/18f \
+    LANG=en_US.UTF-8
+
+RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
+    apt-get install -y software-properties-common && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get update && apt-get install -y \
     bison \

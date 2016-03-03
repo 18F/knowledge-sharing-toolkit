@@ -65,13 +65,14 @@ the [Deployment](#deployment) section below as well.
    ```
    # Testing locally with 18F/knowledge-sharing-toolkit
    # Run `docker-machine env` to get the current IP.
-   192.168.99.100 pages.18f.gov
-   192.168.99.100 pages-staging.18f.gov
-   192.168.99.100 pages-internal.18f.gov
-   192.168.99.100 pages-releases.18f.gov
-   192.168.99.100 team-api.18f.gov
-   192.168.99.100 hub.18f.gov
-   192.168.99.100 handbook.18f.gov
+   192.168.99.100 auth2.18f.gov
+   192.168.99.100 pages2.18f.gov
+   192.168.99.100 pages2-staging.18f.gov
+   192.168.99.100 pages2-internal.18f.gov
+   192.168.99.100 pages2-releases.18f.gov
+   192.168.99.100 team-api2.18f.gov
+   192.168.99.100 hub2.18f.gov
+   192.168.99.100 handbook2.18f.gov
    ```
 
 1. Get a copy of the `SECRETS_BUNDLE_FILE` from someone or run `./go

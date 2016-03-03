@@ -8,6 +8,10 @@ source /etc/profile.d/pyenv.sh
 source /etc/profile.d/rbenv.sh
 set -e
 
+if [ -f $APP_SYS_ROOT/ssh/config/prep-ssh.sh ]; then
+  source $APP_SYS_ROOT/ssh/config/prep-ssh.sh
+fi
+
 if [ -f config/env-secret.sh ]; then
   source config/env-secret.sh
 fi
