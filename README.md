@@ -2,8 +2,7 @@
 
 [![Build Status](https://travis-ci.org/18F/knowledge-sharing-toolkit.svg?branch=master)](https://travis-ci.org/18F/knowledge-sharing-toolkit)
 
-**NOTE: THIS IS _ALMOST_, BUT NOT YET USABLE!!!** It will be completely ready
-by 2016-03-04 (or sooner).
+**NOTE: THIS IS _ALMOST TOTALLY_, BUT NOT YET TOTALLY USABLE!!!**
 
 The knowledge sharing toolkit contains the [Hub](https://github.com/18F/hub/),
 [18F Pages](https://github.com/18F/pages-server), and [Team
@@ -11,6 +10,27 @@ API](https://github.com/18F/team-api-server/). These are lightweight services
 that enable a team to collect and radiate institutional knowledge and
 information. This project contains [Docker](https://www.docker.com/)
 components for these services, to enable rapid deployment of the entire suite.
+
+## Non-Dockerized production system
+
+Since the Dockerized system is still running in staging, this repo also
+contains the scripts need to install and run the non-Dockerized system
+environment. It uses the same directory layout as the Dockerized system.
+
+## Packaging convention
+
+All scripts and service packages are installed under `/usr/local/18f` on both
+Dockerized and non-Dockerized systems.
+
+Each service package contains the following:
+
+- A `Dockerfile`, and an `install.sh` script for non-Dockerized systems
+  `Dockerfile`.
+- An `entrypoint.sh`, and a `run.sh` or `run-server.sh` script for
+  non-Dockerized systems.
+- A `config/` subdirectory containing configuration files.
+- A `config/env-secret.sh` file for secret keys, sourced by the
+  `entrypoint.sh`, `run.sh`, and `run-server.sh` scripts.
 
 ## Installation
 
@@ -32,7 +52,7 @@ the [Deployment](#deployment) section below as well.
 1. After cloning this repository, install all the images by running `./go
    build_images` within your copy of the repository.
 
-## Deployment
+## Deployment using Docker
 
 1. Install your public SSH key on the remote host machine.
 
@@ -57,7 +77,31 @@ the [Deployment](#deployment) section below as well.
 1. Run `./go start` to bring up all the system components, and `./go stop` to
    stop them all.
 
-## Running locally
+## Installation and deployment without Docker
+
+Do all of the same installation deployment steps as above, except do not
+install Docker or run `./go start`. Then:
+
+1. Run `sudo mkdir /usr/local/18f`
+
+1. Run `sudo chown ubuntu:ubuntu /usr/local/18f`
+
+1. Run `cp -R bin oauth2_proxy hmacproxy authdelegate pages lunr-server
+   team-api nginx /usr/local/18f/`
+
+1. Run `sudo cp logrotate.d/* /etc/logrotate.d/`
+
+1. Update the `localhost` line of `/etc/hosts` to read:
+
+   ```
+   127.0.0.1 localhost oauth2_proxy hmacproxy authdelegate pages lunr-server team-api nginx
+   ```
+
+1. Run `/usr/local/18f/install.sh` to install all of the packages.
+
+1. Run `/usr/local/18f/start.sh` to start the system.
+
+## Running the Dockerized version locally
 
 1. Add the following to the `/etc/hosts` file of your development machine,
    commenting out any services you're not currently attempting to emulate
