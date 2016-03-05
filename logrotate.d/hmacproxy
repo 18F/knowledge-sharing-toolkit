@@ -1,0 +1,10 @@
+/var/log/hmacproxy/access.log {
+  rotate 12
+  monthly
+  compress
+  missingok
+  notifempty
+  postrotate
+    service oauth2_proxy restart
+  endscript
+}
